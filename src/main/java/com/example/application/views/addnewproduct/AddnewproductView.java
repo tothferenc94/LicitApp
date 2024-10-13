@@ -42,6 +42,7 @@ public class AddnewproductView extends Composite<VerticalLayout> {
         Product product = new Product();
         if(inputLayout.getBinder().validate().isOk()) {
             inputLayout.getBinder().writeBeanIfValid(product);
+            product.setActualPrice(product.getStartPrice());
             productService.save(product);
             Notification.show("Sikeres mentés").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         } else

@@ -1,13 +1,13 @@
 package com.example.application.layouts;
 
 import com.example.application.data.Product;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.StringLengthValidator;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -34,21 +34,31 @@ public class InputLayout extends VerticalLayout {
         startPriceField.setPlaceholder("0.00");
         bidField.setPlaceholder("0.00");
 
-        formLayout.add(title, productNameField, startDateField,
+        formLayout.add(productNameField, startDateField,
                 deadlineDateField, picUrlField, startPriceField, bidField);
 
         bindFields();
 
-        add(formLayout);
+        add(title, formLayout);
     }
 
     private void bindFields() {
-        binder.bind(productNameField, Product::getProductName, Product::setProductName);
-        binder.bind(startDateField, Product::getStartDate, Product::setStartDate);
-        binder.bind(deadlineDateField, Product::getDeadlineDate, Product::setDeadlineDate);
+        binder.forField(productNameField)
+                .withValidator(new StringLengthValidator("Túl rövid a terméknév!", 1, 100))
+                .bind(Product::getProductName, Product::setProductName);
+        binder.forField(startDateField)
+                .withValidator(value -> value.matches("\\d{4}\\.(0[1-9]|1[0-2])\\.(0[1-9]|[12][0-9]|3[01])"), "A dátumformátum nem megfelelő! (éééé.hh.nn)")
+                .bind(Product::getStartDate, Product::setStartDate);
+        binder.forField(deadlineDateField)
+                .withValidator(value -> value.matches("\\d{4}\\.(0[1-9]|1[0-2])\\.(0[1-9]|[12][0-9]|3[01])"), "A dátumformátum nem megfelelő! (éééé.hh.nn)")
+                .bind(Product::getDeadlineDate, Product::setDeadlineDate);
         binder.bind(picUrlField, Product::getPicUrl, Product::setPicUrl);
-        binder.bind(startPriceField, Product::getStartPrice, Product::setStartPrice);
-        binder.bind(bidField, Product::getBid, Product::setBid);
+        binder.forField(startPriceField)
+                .withValidator(value -> value != null && value > 0.0, "A kezdőérték nem lehet 0!")
+                .bind(Product::getStartPrice, Product::setStartPrice);
+        binder.forField(bidField)
+                .withValidator(value -> value != null && value > 0.0, "A licitlépcső nem lehet 0!")
+                .bind(Product::getBid, Product::setBid);
     }
 
 }
